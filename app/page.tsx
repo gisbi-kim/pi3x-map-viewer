@@ -169,12 +169,28 @@ export default function Home() {
     grid.position.set(center.x, center.y, floorZ - bounds.diagonal * 0.004);
 
     const fitView = () => {
-      camera.position.set(
-        center.x - bounds.diagonal * 0.58,
-        center.y - bounds.diagonal * 0.58,
-        center.z + bounds.diagonal * 0.42,
-      );
-      controls.target.copy(center);
+      if (flipped && alignFloor) {
+        // Compose the scan along its horizontal principal axis, with a low
+        // three-quarter view and extra room on the left for the control panel.
+        const longAxis = new THREE.Vector3(0.5052, 0.8630, 0);
+        const viewSide = new THREE.Vector3(-0.8630, 0.5052, 0);
+        const focus = center
+          .clone()
+          .addScaledVector(longAxis, bounds.diagonal * 0.09);
+        focus.z = transformedBox.min.z + (transformedBox.max.z - transformedBox.min.z) * 0.5;
+        camera.position
+          .copy(focus)
+          .addScaledVector(viewSide, bounds.diagonal * 0.7)
+          .add(new THREE.Vector3(0, 0, bounds.diagonal * 0.18));
+        controls.target.copy(focus);
+      } else {
+        camera.position.set(
+          center.x - bounds.diagonal * 0.58,
+          center.y - bounds.diagonal * 0.58,
+          center.z + bounds.diagonal * 0.42,
+        );
+        controls.target.copy(center);
+      }
       controls.update();
     };
     fitViewRef.current = fitView;
